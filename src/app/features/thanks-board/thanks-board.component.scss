@@ -1,0 +1,235 @@
+:host {
+  display: block;
+}
+
+.board {
+  padding-top: 4px;
+}
+
+.conversation-note {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  margin: 16px 0 28px;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+
+  app-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--color-secondary);
+  }
+}
+
+.conversation {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  margin: 0;
+  padding: 0 0 30px;
+  list-style: none;
+}
+
+.post {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: flex-start;
+  max-width: 88%;
+  min-width: 0;
+  animation: arrive 150ms ease-out;
+}
+
+.post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-inline: 4px;
+  margin-bottom: 7px;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+
+  .author {
+    color: var(--color-secondary);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+}
+
+.bubble {
+  max-width: 100%;
+  margin: 0;
+  padding: 15px 18px;
+  border-radius: 20px 20px 20px 6px;
+  background: var(--color-secondary-light);
+  color: var(--color-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.post--mine {
+  align-items: flex-end;
+  align-self: flex-end;
+
+  .post-meta .author {
+    color: var(--color-primary);
+  }
+
+  .bubble {
+    border-radius: 20px 20px 6px 20px;
+    color: var(--color-surface);
+    background: var(--color-primary);
+  }
+
+  .post-reactions {
+    justify-content: flex-end;
+  }
+}
+
+.post-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.reaction-chip,
+.react-toggle,
+.reaction-options button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  app-icon {
+    width: 15px;
+    height: 15px;
+  }
+
+  &:hover {
+    color: var(--color-secondary);
+    background: var(--color-secondary-light);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &.is-selected {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-light);
+  }
+}
+
+.reaction-chip {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-secondary);
+}
+
+.reaction-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.reaction-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 100%;
+  margin-top: 4px;
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+
+  button {
+    color: var(--color-secondary);
+  }
+}
+
+.composer {
+  position: sticky;
+  bottom: 12px;
+  padding: 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 22px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+
+  label {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--color-secondary);
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  textarea {
+    display: block;
+    width: 100%;
+    min-height: 86px;
+    max-height: 35svh;
+    resize: vertical;
+  }
+
+  .form-error {
+    margin: 8px 0 0;
+  }
+}
+
+.composer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+
+  p {
+    flex: 1 1 150px;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.69rem;
+    line-height: 1.5;
+  }
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post {
+    animation: none;
+  }
+
+  .reaction-chip:active,
+  .react-toggle:active,
+  .reaction-options button:active {
+    transform: none;
+  }
+}

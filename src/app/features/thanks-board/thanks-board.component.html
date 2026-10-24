@@ -1,0 +1,117 @@
+<app-page-header title="Thanks Board" subtitle="Notice the little things. Say thank you often." />
+
+<div class="board">
+  <p class="conversation-note"><app-icon name="heart" /> Little things, big love.</p>
+
+  <ol #postList class="conversation" aria-label="Household updates">
+    @for (post of store.posts(); track post.id) {
+      <li class="post" [class.post--mine]="post.author === 'me'">
+        <div class="post-meta">
+          <span class="author">{{ post.author === 'me' ? 'You' : 'Partner' }}</span>
+          <time [attr.datetime]="post.createdAt.toISOString()">{{
+            post.createdAt | date: 'shortTime'
+          }}</time>
+        </div>
+
+        <p class="bubble">{{ post.message }}</p>
+
+        <div class="post-reactions" role="group" aria-label="Reactions">
+          @for (label of reactionLabels; track label) {
+            @if (reactionCount(post, label); as count) {
+              <button
+                type="button"
+                class="reaction-chip"
+                [class.is-selected]="hasReacted(post, label)"
+                [attr.aria-pressed]="hasReacted(post, label)"
+                [attr.aria-label]="
+                  label +
+                  ', ' +
+                  count +
+                  ' reaction' +
+                  (count === 1 ? '' : 's') +
+                  '. Toggle your reaction.'
+                "
+                (click)="react(post, label)"
+              >
+                <span lang="ja">{{ label }}</span>
+                @if (count > 1) {
+                  <span class="reaction-count">{{ count }}</span>
+                }
+                @if (hasReacted(post, label)) {
+                  <app-icon name="check" />
+                }
+              </button>
+            }
+          }
+
+          <button
+            type="button"
+            class="react-toggle"
+            [id]="'reaction-toggle-' + post.id"
+            [attr.aria-label]="
+              'Choose a reaction to ' +
+              (post.author === 'me' ? 'your' : 'your partner’s') +
+              ' update'
+            "
+            [attr.aria-expanded]="openReactionPostId() === post.id"
+            [attr.aria-controls]="
+              openReactionPostId() === post.id ? 'reaction-options-' + post.id : null
+            "
+            (click)="toggleReactionOptions(post.id)"
+          >
+            <app-icon name="smile" />
+            <span>{{ openReactionPostId() === post.id ? 'Close' : 'React' }}</span>
+          </button>
+        </div>
+
+        @if (openReactionPostId() === post.id) {
+          <div
+            class="reaction-options"
+            [id]="'reaction-options-' + post.id"
+            role="group"
+            aria-label="Choose a positive reaction"
+          >
+            @for (label of reactionLabels; track label) {
+              <button
+                type="button"
+                [class.is-selected]="hasReacted(post, label)"
+                [attr.aria-pressed]="hasReacted(post, label)"
+                [attr.aria-label]="'React: ' + label"
+                (click)="react(post, label)"
+              >
+                <span lang="ja">{{ label }}</span>
+              </button>
+            }
+          </div>
+        }
+      </li>
+    } @empty {
+      <li class="empty-state">Start with a small win. Your first update belongs here.</li>
+    }
+  </ol>
+
+  <form class="composer" [formGroup]="composer" (ngSubmit)="send()">
+    <label for="thanks-message">Share a little win</label>
+    <textarea
+      #messageInput
+      id="thanks-message"
+      formControlName="message"
+      class="field"
+      placeholder="What did you do today?"
+      rows="2"
+      [attr.aria-invalid]="error() ? true : null"
+      [attr.aria-describedby]="error() ? 'composer-hint composer-error' : 'composer-hint'"
+      (input)="error.set('')"
+      (keydown)="onComposerKeydown($event)"
+    ></textarea>
+    @if (error()) {
+      <p id="composer-error" class="form-error" role="alert">{{ error() }}</p>
+    }
+    <div class="composer-actions">
+      <p id="composer-hint">Enter to send · Shift + Enter for a new line</p>
+      <button type="submit" class="button button--primary"><app-icon name="send" /> Send</button>
+    </div>
+  </form>
+</div>
+
+<p class="visually-hidden" role="status" aria-live="polite">{{ announcement() }}</p>

@@ -1,0 +1,166 @@
+:host {
+  display: block;
+}
+
+.menu-intro {
+  padding-block: 20px 32px;
+
+  h1 {
+    margin: 14px 0 18px;
+    font-size: clamp(2.4rem, 8vw, 3.5rem);
+    font-weight: 750;
+    letter-spacing: -0.055em;
+    line-height: 1.13;
+
+    span {
+      color: var(--color-primary);
+    }
+  }
+}
+
+.menu-subtitle {
+  max-width: 32ch;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 1rem;
+}
+
+.menu-cards {
+  display: grid;
+  gap: 18px;
+}
+
+.menu-card {
+  --card-color: var(--color-primary);
+  --card-tint: var(--color-primary-light);
+
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  text-decoration: none;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: var(--card-color);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.985);
+    background: var(--card-tint);
+  }
+}
+
+.menu-card--thanks {
+  --card-color: var(--color-secondary);
+  --card-tint: var(--color-secondary-light);
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.card-icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border-radius: 17px;
+  color: var(--card-color);
+  background: var(--card-tint);
+  font-size: 1.65rem;
+}
+
+.card-arrow {
+  color: var(--card-color);
+  font-size: 1.25rem;
+}
+
+.card-title {
+  color: var(--color-text);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.card-description {
+  margin-top: 7px;
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+}
+
+.card-caption {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+  color: var(--card-color);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.together-note {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 30px;
+  padding: 20px;
+  border-radius: 20px;
+  background: var(--color-secondary-light);
+
+  p {
+    margin: 0;
+    color: var(--color-secondary);
+    font-size: 0.875rem;
+    font-weight: 650;
+    line-height: 1.6;
+  }
+
+  span {
+    font-weight: 400;
+  }
+}
+
+.note-icon {
+  display: flex;
+  flex: 0 0 auto;
+  color: var(--color-secondary);
+  font-size: 1.5rem;
+}
+
+@media (min-width: 560px) {
+  .menu-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .menu-card {
+    padding: 22px;
+  }
+
+  .card-description {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-card {
+    transition: none;
+
+    &:hover,
+    &:active {
+      transform: none;
+    }
+  }
+}

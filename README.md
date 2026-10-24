@@ -4,28 +4,38 @@ Plan together. Stay in sync.
 
 Family Hub is a shared family planning and household management app for couples and families.
 
-**Status: Coming Soon / Early Development**
+**Status: Frontend MVP / Early Development**
 
-The current application contains a responsive Coming Soon page and the Angular project foundation. Household features are planned for future development.
+The current application includes a mobile-first Menu, Shopping List, and Thanks Board. It uses local mock data and in-memory frontend state. Changes remain available while navigating between screens and reset when the page is refreshed.
 
 ## Tech stack
 
 - Angular 21 with standalone components, Angular Router, and OnPush change detection
+- Angular Signals for local state and typed Reactive Forms for inputs
 - TypeScript 5.9 with strict type checking and strict Angular templates
 - SCSS for global and component styles
 - Prettier for consistent formatting
+- Vitest and jsdom for automated tests through Angular CLI
 - pnpm and Angular CLI for local development and production builds
 
-The app uses Angular's default zoneless change detection. Signals can be introduced when reactive state is needed; the static Coming Soon page does not need them.
+The app uses Angular's default zoneless change detection. Feature stores expose signal-based state and keep the current frontend logic separate from the page components.
+
+## Current features
+
+- **Menu:** Two large, keyboard-accessible navigation cards for the household tools.
+- **Shopping List:** Add items with the button or Enter, mark them complete or incomplete, edit with Save and Cancel, and delete items immediately.
+- **Thanks Board:** Post everyday accomplishments in conversation-style bubbles and add positive reactions. New posts are authored by the current user; the sample conversation includes both family members.
+
+This version does not share data between people or devices. It does not include a backend, authentication, a database, or real-time communication.
 
 ## Planned features
 
 - Today's schedule
 - Weekly schedule and shared plans
-- Shared shopping list
 - Shared household information
+- Persistent shared family data and real-time updates
 
-These features are not implemented yet. The foundation does not include authentication, backend services, API clients, a database, or a state management library.
+These features are planned for future development. Shopping List and Thanks Board currently demonstrate the interactions using local/mock frontend state.
 
 ## Local development
 
@@ -43,8 +53,10 @@ Open [localhost:4200](http://localhost:4200/). Source changes reload the applica
 ## Checks and production build
 
 ```bash
+pnpm format
 pnpm format:check
 pnpm typecheck
+pnpm test
 pnpm build
 ```
 
@@ -52,19 +64,20 @@ Run `pnpm format` to apply formatting. `pnpm typecheck` checks TypeScript withou
 
 The default build uses the production configuration and writes browser assets to `dist/family-hub/browser/`. Use `pnpm watch` for a development build that watches for changes.
 
-ESLint and a test runner are not configured in this initial foundation.
+`pnpm test` runs the focused Vitest/jsdom tests once through Angular's unit-test builder. ESLint is not configured.
 
 The pnpm override for Angular's build dependency `undici` pins the patched `7.30.1` release. Review this override when updating Angular CLI.
 
 ## Routes
 
-| Path             | Current behavior                          |
-| ---------------- | ----------------------------------------- |
-| `/`              | Displays the lazy-loaded Coming Soon page |
-| `/dashboard`     | Redirects to `/`                          |
-| `/schedule`      | Redirects to `/`                          |
-| `/shopping-list` | Redirects to `/`                          |
-| Any other path   | Redirects to `/`                          |
+| Path             | Current behavior           |
+| ---------------- | -------------------------- |
+| `/`              | Displays the Menu          |
+| `/shopping-list` | Displays the Shopping List |
+| `/thanks-board`  | Displays the Thanks Board  |
+| `/dashboard`     | Redirects to `/`           |
+| `/schedule`      | Redirects to `/`           |
+| Any other path   | Redirects to `/`           |
 
 When hosting the application, configure the server to return `index.html` for application routes so that direct links and refreshes work with Angular Router.
 
@@ -76,15 +89,21 @@ public/
 src/
   app/
     features/
-      coming-soon/
-        coming-soon.component.ts
-        coming-soon.component.html
-        coming-soon.component.scss
+      menu/
+      shopping-list/
+      thanks-board/
+    shared/
+      components/
+        icon.component.ts
+        page-header.component.ts
     app.component.ts
+    app.component.html
+    app.component.scss
     app.config.ts
     app.routes.ts
   styles/
     _base.scss
+    _components.scss
   index.html
   main.ts
   styles.scss
@@ -94,8 +113,9 @@ pnpm-lock.yaml
 pnpm-workspace.yaml
 tsconfig.json
 tsconfig.app.json
+tsconfig.spec.json
 ```
 
-The root component hosts the router outlet, and each page lives under `features/`. Global styles begin in `src/styles.scss`, with base styles in `src/styles/_base.scss`.
+The root component provides the shared app shell and router outlet. Each page lives under `features/`; Shopping List and Thanks Board keep their typed models, signal stores, and tests alongside the page. Shared icons and page headers live under `shared/components/`. Global styles begin in `src/styles.scss`, with the theme and base rules in `src/styles/_base.scss` and shared controls in `src/styles/_components.scss`.
 
-Add `core/` for application-wide services, `shared/` for reusable UI, and feature folders such as `dashboard/`, `schedule/`, and `shopping-list/` when they contain real code. Empty placeholder folders and speculative abstractions are intentionally omitted.
+When adding real shared family data, connect the feature stores to a backend with household membership and authorization, then add persistence and synchronization. Keep the current components focused on display and interaction.

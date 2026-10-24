@@ -1,0 +1,130 @@
+<app-page-header
+  title="Shopping List"
+  subtitle="A little less to remember. A little more in sync."
+/>
+
+<section class="shopping-panel" aria-label="Your shopping list">
+  <div class="list-intro">
+    <span class="list-icon" aria-hidden="true"><app-icon name="basket" /></span>
+    <div>
+      <p class="eyebrow">The everyday essentials</p>
+      <h2>What do we need?</h2>
+    </div>
+  </div>
+
+  <form class="add-form" [formGroup]="addForm" (ngSubmit)="addItem()" novalidate>
+    <label class="visually-hidden" for="new-item">New shopping item</label>
+    <input
+      #addInput
+      id="new-item"
+      class="field"
+      type="text"
+      placeholder="Add an item..."
+      autocomplete="off"
+      [formControl]="addControl"
+      [attr.aria-invalid]="addError()"
+      [attr.aria-describedby]="addError() ? 'add-error' : null"
+      (input)="addError.set(false)"
+      (keydown)="addOnEnter($event)"
+    />
+    <button class="button button--primary" type="submit"><app-icon name="plus" /> Add</button>
+    @if (addError()) {
+      <p id="add-error" class="form-error" role="alert">Give your item a name first.</p>
+    }
+  </form>
+
+  <div class="list-summary">
+    <p>{{ store.remainingCount() }} to pick up</p>
+    <span class="completed-count"
+      >{{ store.completedCount() }} of {{ store.items().length }} done</span
+    >
+  </div>
+
+  @if (store.items().length) {
+    <ul class="shopping-items">
+      @for (item of store.items(); track item.id) {
+        <li class="shopping-item" [class.is-completed]="item.completed">
+          <label class="checkbox-target">
+            <input
+              class="item-checkbox"
+              type="checkbox"
+              [id]="'item-' + item.id"
+              [checked]="item.completed"
+              (change)="toggleItem(item)"
+            />
+          </label>
+          <label
+            class="item-name"
+            [class.visually-hidden]="editingId() === item.id"
+            [for]="'item-' + item.id"
+            >{{ item.name }}</label
+          >
+
+          @if (editingId() === item.id) {
+            <form
+              class="edit-form"
+              [formGroup]="editForm"
+              (ngSubmit)="saveItem(item.id)"
+              novalidate
+            >
+              <label class="visually-hidden" [for]="'edit-' + item.id">Edit {{ item.name }}</label>
+              <input
+                #editInput
+                class="field"
+                type="text"
+                [id]="'edit-' + item.id"
+                [formControl]="editControl"
+                [attr.aria-invalid]="editError()"
+                [attr.aria-describedby]="editError() ? 'edit-error' : null"
+                (input)="editError.set(false)"
+                (keydown.escape)="cancelEditing()"
+              />
+              @if (editError()) {
+                <p id="edit-error" class="form-error" role="alert">An item needs a name.</p>
+              }
+              <div class="edit-actions">
+                <button class="button button--primary" type="submit">
+                  <app-icon name="check" /> Save
+                </button>
+                <button class="button button--quiet" type="button" (click)="cancelEditing()">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          } @else {
+            <div class="item-actions">
+              <button
+                class="icon-button"
+                type="button"
+                [attr.aria-label]="'Edit ' + item.name"
+                (click)="startEditing(item)"
+              >
+                <app-icon name="edit" />
+              </button>
+              <button
+                class="icon-button delete-button"
+                type="button"
+                [attr.aria-label]="'Delete ' + item.name"
+                (click)="deleteItem(item)"
+              >
+                <app-icon name="trash" />
+              </button>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  } @else {
+    <div class="empty-state">
+      <app-icon name="basket" />
+      <h3>A fresh little list</h3>
+      <p>Add something above, and take one less thing off your mind.</p>
+    </div>
+  }
+
+  <p class="list-note"><app-icon name="heart" /> One little list. One less thing to juggle.</p>
+</section>
+
+<p class="visually-hidden" role="status" aria-live="polite" aria-atomic="true">
+  {{ announcement() }}
+</p>

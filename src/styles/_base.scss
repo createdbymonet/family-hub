@@ -1,12 +1,26 @@
 :root {
   color-scheme: light;
-  --color-background: #f7f8f2;
-  --color-text: #243b33;
-  --color-muted: #58665d;
-  --color-accent: #46654d;
-  --color-border: #dce1d5;
+  --color-primary: #07777d;
+  --color-primary-hover: #06636a;
+  --color-primary-light: #e3f5f3;
+  --color-on-primary: #ffffff;
+  --color-secondary: #483473;
+  --color-secondary-light: #f0eafa;
+  --color-background: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-text: #24303f;
+  --color-text-muted: #606c7c;
+  --color-border: #dce3ec;
+  --color-danger: #b43c53;
+  --color-danger-light: #fff0f2;
+  --shadow-card: 0 5px 24px #24303f07, 0 1px 3px #24303f04;
 
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    'Avenir Next',
+    'Segoe UI',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   color: var(--color-text);
   background: var(--color-background);
   font-synthesis: none;
@@ -24,6 +38,9 @@ body {
   margin: 0;
   min-height: 100svh;
   line-height: 1.6;
+  background:
+    radial-gradient(ellipse at 15% 0%, var(--color-primary-light), transparent 55%),
+    radial-gradient(ellipse at 100% 60%, var(--color-secondary-light), transparent 65%);
 }
 
 a {
@@ -31,11 +48,57 @@ a {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 3px solid var(--color-primary);
   outline-offset: 4px;
 }
 
 ::selection {
   color: var(--color-text);
-  background: #dce7d7;
+  background: var(--color-primary-light);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+input,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  touch-action: manipulation;
+}
+
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+button {
+  color: inherit;
+}
+svg {
+  display: block;
+}
+input[type='checkbox'] {
+  accent-color: var(--color-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
