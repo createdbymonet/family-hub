@@ -6,6 +6,8 @@
     "dev": "ng serve",
     "start": "ng serve",
     "build": "ng build",
+    "deploy": "pnpm build && wrangler deploy --config wrangler.jsonc",
+    "deploy:check": "pnpm build && wrangler deploy --config wrangler.jsonc --dry-run",
     "watch": "ng build --watch --configuration development",
     "test": "ng test --watch=false",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
@@ -14,7 +16,7 @@
   },
   "private": true,
   "engines": {
-    "node": "^20.19.0 || ^22.12.0 || ^24.0.0",
+    "node": "^22.12.0 || ^24.0.0",
     "pnpm": ">=11.21.0"
   },
   "packageManager": "pnpm@11.21.0",
@@ -35,6 +37,7 @@
     "jsdom": "^27.4.0",
     "prettier": "^3.9.10",
     "typescript": "~5.9.2",
-    "vitest": "^4.1.12"
+    "vitest": "^4.1.12",
+    "wrangler": "4.152.0"
   }
 }

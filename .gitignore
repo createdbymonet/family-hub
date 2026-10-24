@@ -30,6 +30,12 @@ yarn-error.log
 .history/*
 
 # Miscellaneous
+/.wrangler/
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+!.env.example
 /.angular/cache
 .sass-cache/
 /connect.lock

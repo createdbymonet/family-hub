@@ -17,6 +17,7 @@ The current application includes a mobile-first Menu, Shopping List, and Thanks 
 - Prettier for consistent formatting
 - Vitest and jsdom for automated tests through Angular CLI
 - pnpm and Angular CLI for local development and production builds
+- Wrangler for Cloudflare production deployment
 
 The app uses Angular's default zoneless change detection. Feature stores expose signal-based state and keep the current frontend logic separate from the page components.
 
@@ -39,7 +40,7 @@ These features are planned for future development. Shopping List and Thanks Boar
 
 ## Local development
 
-Use Node.js 24 and pnpm 11.21.0. Angular 21 also supports Node.js `^20.19.0` and `^22.12.0`; the supported Node.js 24 range is `^24.0.0`.
+Use Node.js 24 and pnpm 11.21.0. The project's supported Node.js ranges are `^22.12.0` and `^24.0.0`, covering both Angular and the production deployment tooling.
 
 Install dependencies and start the development server:
 
@@ -67,6 +68,46 @@ The default build uses the production configuration and writes browser assets to
 `pnpm test` runs the focused Vitest/jsdom tests once through Angular's unit-test builder. ESLint is not configured.
 
 The pnpm override for Angular's build dependency `undici` pins the patched `7.30.1` release. Review this override when updating Angular CLI.
+
+## Production deployment
+
+The production hosting configuration targets one Cloudflare Worker, `family-hub`, using Workers Static Assets. Local development continues to use Angular CLI; it does not deploy a Worker.
+
+| Source            | Result                                                                     |
+| ----------------- | -------------------------------------------------------------------------- |
+| Local `pnpm dev`  | Angular development server at `localhost:4200`                             |
+| `main`            | Development branch; no Cloudflare deployment                               |
+| Push to `release` | GitHub Actions → `production` environment → Cloudflare Worker `family-hub` |
+
+`.github/workflows/deploy-production.yml` runs only for pushes to `release`. It checks out the code, configures Node.js 24 and the pnpm version from `package.json`, installs from the frozen lockfile, runs formatting/type checks and tests, builds the production app, and deploys with the project's local Wrangler installation.
+
+The top-level `wrangler.jsonc` configuration is the production target. It serves the generated `dist/family-hub/browser/` directory. `assets.not_found_handling` is set to `single-page-application`, so direct navigation and refreshes at `/shopping-list` and `/thanks-board` receive `index.html` and are handled by Angular Router. See [Cloudflare's SPA routing documentation](https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/).
+
+There are no named Wrangler environments or Cloudflare backend bindings in this setup. Version preview URLs are disabled.
+
+### One-time GitHub and Cloudflare setup
+
+1. In the GitHub repository, create the `production` environment and restrict its deployment branches to `release`.
+2. Add these environment secrets: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. The workflow reads them only for deployment; do not commit their values.
+3. Scope the API token to the intended Cloudflare account. An existing `family-hub` Worker needs `Editor` access for that Worker; creating it for the first time needs Workers product-level `Admin` access. After initial creation, the token can be narrowed to that Worker. See [Cloudflare's Wrangler permission requirements](https://developers.cloudflare.com/workers/authorization/workers/#wrangler). This configuration does not manage DNS or custom domains.
+4. If the Worker already has a Cloudflare Workers Builds/Git integration, disable its automatic deployments and previews or disconnect that integration. GitHub Actions should be the only automatic deployment path, so a push to `main` cannot trigger a separate Cloudflare build.
+5. Put the intended production commit, including this workflow, on `release` and push that branch when ready to deploy.
+
+### Local deployment commands
+
+Validate the production build and Wrangler packaging without uploading or deploying:
+
+```bash
+pnpm deploy:check
+```
+
+When an intentional manual production deployment is needed, authenticate Wrangler for the intended account and run:
+
+```bash
+pnpm run deploy
+```
+
+`pnpm run deploy` builds the app and targets only the default `family-hub` Worker. Do not pass a named environment. Adding these configuration files does not itself deploy the application or change existing remote resources.
 
 ## Routes
 
@@ -111,6 +152,8 @@ angular.json
 package.json
 pnpm-lock.yaml
 pnpm-workspace.yaml
+wrangler.jsonc
+.github/workflows/deploy-production.yml
 tsconfig.json
 tsconfig.app.json
 tsconfig.spec.json

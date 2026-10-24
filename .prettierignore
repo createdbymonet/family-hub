@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .angular/
+.wrangler/
 out-tsc/
 coverage/
 pnpm-lock.yaml
