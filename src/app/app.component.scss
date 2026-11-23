@@ -6,7 +6,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 640px;
+  max-width: 760px;
   min-height: 100svh;
   margin-inline: auto;
   padding: 24px 20px 20px;
@@ -17,6 +17,15 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 32px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
 }
 
 .brand {
@@ -39,7 +48,7 @@
   height: 44px;
   border-radius: 15px 15px 15px 5px;
   color: var(--color-on-primary);
-  background: var(--color-primary);
+  background: var(--color-primary-ink);
   font-size: 1.4rem;
   transform: rotate(-4deg);
 }
@@ -48,7 +57,7 @@
   display: block;
   margin-top: 2px;
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.015em;
 }

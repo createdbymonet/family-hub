@@ -13,7 +13,7 @@
     "test": "pnpm test:ui && pnpm test:worker && pnpm test:bootstrap",
     "test:ui": "ng test --watch=false",
     "test:worker": "vitest run --config vitest.worker.config.ts",
-    "test:bootstrap": "node --test scripts/bootstrap-users.test.mjs",
+    "test:bootstrap": "node --test scripts/*.test.mjs",
     "typecheck": "pnpm typecheck:app && pnpm typecheck:worker",
     "typecheck:app": "tsc --noEmit -p tsconfig.app.json",
     "typecheck:worker": "pnpm types:worker && tsc --noEmit -p tsconfig.worker.json",

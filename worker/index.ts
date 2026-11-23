@@ -1,5 +1,7 @@
 import { clearOAuthCookie, finishGoogleSignIn, startGoogleSignIn } from './auth';
 import { shoppingApi, thanksApi } from './data';
+import { sharedEntriesApi } from './shared-entries';
+import { settingsApi } from './settings';
 import { errorResponse, HttpError, json, rejectMethod, secureApiResponse } from './http';
 import {
   appOrigin,
@@ -40,7 +42,15 @@ async function apiRequest(request: Request, env: Cloudflare.Env): Promise<Respon
     }
     const shopping = /^\/api\/shopping-items(?:\/([^/]+))?$/.exec(path);
     const thanks = /^\/api\/thanks-posts(?:\/([^/]+)(?:\/reactions\/([^/]+))?)?$/.exec(path);
-    if (!shopping && !thanks && path !== '/api/auth/session' && path !== '/api/auth/logout') {
+    const sharedEntry = /^\/api\/(wishes|notes)(?:\/([^/]+))?$/.exec(path);
+    if (
+      !shopping &&
+      !thanks &&
+      !sharedEntry &&
+      path !== '/api/user-settings' &&
+      path !== '/api/auth/session' &&
+      path !== '/api/auth/logout'
+    ) {
       throw new HttpError(404, 'NOT_FOUND', 'The API endpoint was not found.');
     }
     session = await sessionFromRequest(request, env);
@@ -61,6 +71,16 @@ async function apiRequest(request: Request, env: Cloudflare.Env): Promise<Respon
       response = await shoppingApi(request, env, session, shopping[1]);
     } else if (thanks) {
       response = await thanksApi(request, env, session, thanks[1], thanks[2]);
+    } else if (sharedEntry) {
+      response = await sharedEntriesApi(
+        request,
+        env,
+        session,
+        sharedEntry[1] as 'wishes' | 'notes',
+        sharedEntry[2],
+      );
+    } else if (path === '/api/user-settings') {
+      response = await settingsApi(request, env, session);
     } else {
       throw new HttpError(404, 'NOT_FOUND', 'The API endpoint was not found.');
     }

@@ -78,9 +78,9 @@
     >
   </div>
 
-  @if (store.items().length) {
+  @if (visibleItems().length) {
     <ul class="shopping-items">
-      @for (item of store.items(); track item.id) {
+      @for (item of visibleItems(); track item.id) {
         <li class="shopping-item" [class.is-completed]="item.completed">
           <label class="checkbox-target">
             <input
@@ -173,7 +173,13 @@
     <div class="empty-state">
       <app-icon name="basket" />
       <h3>A fresh little list</h3>
-      <p>Add something above, and take one less thing off your mind.</p>
+      <p>
+        {{
+          store.completedCount()
+            ? 'All picked up! Show completed shopping items in Settings to review or undo them.'
+            : 'Add something above, and take one less thing off your mind.'
+        }}
+      </p>
     </div>
   }
 

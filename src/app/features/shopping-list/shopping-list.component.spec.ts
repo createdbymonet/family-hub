@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ShoppingItemDto } from '../../../../shared/contracts';
 import { ApiFailure } from '../../core/api-client';
+import { SettingsService } from '../../core/settings.service';
 import { AuthService } from '../../core/auth.service';
 import { ShoppingListApi } from './shopping-list.api';
 import { ShoppingListComponent } from './shopping-list.component';
@@ -107,6 +108,9 @@ describe('ShoppingListComponent', () => {
 
   it('checks and unchecks an item using desired boolean values while leaving it visible', async () => {
     await create();
+    await TestBed.inject(SettingsService).update({ showCompletedShoppingItems: true }, true);
+    TestBed.inject(SettingsService).setDemoMode(true);
+    await fixture.whenStable();
     query<HTMLInputElement>('#item-milk').click();
     await fixture.whenStable();
     expect(api.update).toHaveBeenLastCalledWith(TEST_ITEMS[0], { completed: true });
@@ -156,7 +160,7 @@ describe('ShoppingListComponent', () => {
     expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Milk'));
     expect(api.remove).not.toHaveBeenCalled();
     expect(store.items()).toEqual(TEST_ITEMS);
-    for (const item of store.items()) {
+    for (const item of store.items().filter((item) => !item.completed)) {
       query<HTMLButtonElement>(`button[aria-label="Delete ${item.name}"]`).click();
       await fixture.whenStable();
     }
@@ -244,6 +248,20 @@ describe('ShoppingListComponent', () => {
     await fixture.whenStable();
     expect(api.list).not.toHaveBeenCalled();
     expect(api.create).not.toHaveBeenCalled();
+  });
+
+  it('hides completed items by default and shows them when the personal preference is on', async () => {
+    await create();
+    expect(host.querySelector('#item-eggs')).toBeNull();
+    const preferences = TestBed.inject(SettingsService);
+    preferences.setDemoMode(true);
+    await preferences.update({ showCompletedShoppingItems: true }, true);
+    await fixture.whenStable();
+    expect(host.querySelector('#item-eggs')).not.toBeNull();
+    await preferences.update({ showCompletedShoppingItems: false }, true);
+    await fixture.whenStable();
+    expect(host.querySelector('#item-eggs')).toBeNull();
+    expect(store.items()).toHaveLength(2);
   });
 
   it('clears private rows and draft inputs when the session changes', async () => {

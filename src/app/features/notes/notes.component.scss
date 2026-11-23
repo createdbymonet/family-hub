@@ -1,0 +1,33 @@
+@use '../../shared/styles/collections';
+
+.note-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  color: var(--color-text);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  &:hover {
+    color: var(--color-primary-ink);
+  }
+}
+.detail-hint {
+  color: var(--color-primary-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.note-preview {
+  color: var(--color-text-muted);
+}
+.note-detail {
+  margin-top: 12px;
+}

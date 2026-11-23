@@ -5,6 +5,7 @@ import {
   DestroyRef,
   ElementRef,
   effect,
+  computed,
   inject,
   signal,
   viewChild,
@@ -15,6 +16,7 @@ import { ActivatedRoute } from '@angular/router';
 import { LIMITS } from '../../../../shared/contracts';
 import { AuthService } from '../../core/auth.service';
 import { onFeatureRefresh } from '../../core/feature-refresh';
+import { SettingsService } from '../../core/settings.service';
 import { IconComponent } from '../../shared/components/icon.component';
 import { PageHeaderComponent } from '../../shared/components/page-header.component';
 import { ShoppingItem } from './shopping-item.model';
@@ -39,6 +41,17 @@ export class ShoppingListComponent {
   protected readonly addForm = new FormGroup({ name: this.addControl });
   protected readonly editForm = new FormGroup({ name: this.editControl });
   protected readonly editingId = signal<string | null>(null);
+  private readonly preferences = inject(SettingsService);
+  protected readonly visibleItems = computed(() =>
+    this.store
+      .items()
+      .filter(
+        (item) =>
+          this.preferences.settings().showCompletedShoppingItems ||
+          !item.completed ||
+          this.editingId() === item.id,
+      ),
+  );
   protected readonly addError = signal(false);
   protected readonly editError = signal(false);
   protected readonly announcement = signal('');

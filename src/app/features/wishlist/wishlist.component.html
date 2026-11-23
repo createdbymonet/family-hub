@@ -1,0 +1,219 @@
+<app-page-header title="Wishlist" subtitle="Little dreams. Lovely possibilities." />
+
+<section class="collection" aria-label="Your shared wishlist">
+  <p class="eyebrow">
+    {{ isDemo ? 'Demo Mode · Read only' : 'Family Mode · Shared with your partner' }}
+  </p>
+  @if (isDemo) {
+    <p class="mode-note">A few fictional dreams to explore. Sign in to start your own list.</p>
+  }
+
+  @if (!isDemo) {
+    <form class="entry-form" [formGroup]="addForm" (ngSubmit)="add()" novalidate>
+      <h2><app-icon name="sparkles" /> What would we love to do?</h2>
+      <label for="wish-title">Title</label>
+      <input
+        #addInput
+        id="wish-title"
+        class="field"
+        formControlName="title"
+        placeholder="One day, let’s…"
+        [maxLength]="limits.wishTitle"
+        [readOnly]="blocked()"
+        [attr.aria-invalid]="addError()"
+        [attr.aria-describedby]="addError() ? 'wish-add-error' : null"
+        (keydown)="preventImeSubmit($event)"
+        (input)="addError.set(false)"
+      />
+      <label for="wish-memo">Memo <span class="optional">(optional)</span></label>
+      <textarea
+        id="wish-memo"
+        class="field"
+        formControlName="memo"
+        rows="2"
+        placeholder="A little inspiration or a detail to remember."
+        [maxLength]="limits.wishMemo"
+        [readOnly]="blocked()"
+        [attr.aria-invalid]="addError()"
+        [attr.aria-describedby]="addError() ? 'wish-add-error' : null"
+        (input)="addError.set(false)"
+      ></textarea>
+      @if (addError()) {
+        <p id="wish-add-error" class="form-error" role="alert">
+          Add a title of 1–{{ limits.wishTitle }} characters and a memo of up to
+          {{ limits.wishMemo }} characters.
+        </p>
+      }
+      <button class="button button--primary" type="submit" [disabled]="blocked()">
+        <app-icon name="plus" /> Add a wish
+      </button>
+    </form>
+  }
+
+  @if (store.loading()) {
+    <p role="status">Loading your wishes…</p>
+  }
+  @if (store.saving()) {
+    <p role="status">Saving your change…</p>
+  }
+  @if (store.error()) {
+    <div class="form-error collection-error" role="alert">
+      <p>{{ store.error() }}</p>
+      <button
+        class="button button--quiet"
+        type="button"
+        (click)="retry()"
+        [disabled]="store.loading() || store.saving()"
+      >
+        Refresh list
+      </button>
+    </div>
+  }
+
+  <div class="collection-summary">
+    <p>{{ pendingCount() }} {{ pendingCount() === 1 ? 'wish' : 'wishes' }} to look forward to</p>
+    @if (hiddenCount()) {
+      <a [routerLink]="isDemo ? '/demo/settings' : '/settings'"
+        >{{ hiddenCount() }} achieved · Show in Settings</a
+      >
+    }
+  </div>
+
+  @if (visibleItems().length) {
+    <ul class="entry-list wish-list">
+      @for (item of visibleItems(); track item.id) {
+        <li class="entry-card" [class.is-closed]="item.status === 'achieved'">
+          @if (editing()?.id === item.id) {
+            <form
+              class="edit-form"
+              [formGroup]="editForm"
+              (ngSubmit)="save()"
+              novalidate
+              (keydown.escape)="cancelEditing()"
+            >
+              <label [for]="'wish-edit-title-' + item.id">Title</label>
+              <input
+                #editInput
+                class="field"
+                [id]="'wish-edit-title-' + item.id"
+                formControlName="title"
+                [maxLength]="limits.wishTitle"
+                [readOnly]="blocked()"
+                [attr.aria-invalid]="editError()"
+                [attr.aria-describedby]="editError() ? 'wish-edit-error' : null"
+                (keydown)="preventImeSubmit($event)"
+                (input)="editError.set(false)"
+              />
+              <label [for]="'wish-edit-memo-' + item.id"
+                >Memo <span class="optional">(optional)</span></label
+              >
+              <textarea
+                class="field"
+                [id]="'wish-edit-memo-' + item.id"
+                formControlName="memo"
+                rows="3"
+                [maxLength]="limits.wishMemo"
+                [readOnly]="blocked()"
+                [attr.aria-invalid]="editError()"
+                [attr.aria-describedby]="editError() ? 'wish-edit-error' : null"
+                (input)="editError.set(false)"
+              ></textarea>
+              @if (editError()) {
+                <p id="wish-edit-error" class="form-error" role="alert">
+                  A title is required (up to {{ limits.wishTitle }} characters). Keep the memo under
+                  {{ limits.wishMemo }} characters.
+                </p>
+              }
+              @if (editingMissing()) {
+                <p role="status">
+                  This wish was removed on another device. Your draft is kept here so you can copy
+                  it before cancelling.
+                </p>
+              }
+              <div class="entry-actions">
+                <button
+                  class="button button--primary"
+                  type="submit"
+                  [disabled]="blocked() || editingMissing()"
+                >
+                  Save changes
+                </button>
+                <button
+                  class="button button--quiet"
+                  type="button"
+                  (click)="cancelEditing()"
+                  [disabled]="store.saving()"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          } @else {
+            <span class="status-badge">{{
+              item.status === 'achieved' ? 'Achieved' : 'Someday, together'
+            }}</span>
+            <h2>{{ item.title }}</h2>
+            @if (item.memo) {
+              <p class="entry-body">{{ item.memo }}</p>
+            }
+            <p class="entry-meta">
+              Added by {{ item.authorName }} ·
+              <time [attr.datetime]="item.createdAt">{{
+                item.createdAt | date: 'mediumDate'
+              }}</time>
+            </p>
+            @if (item.achievedAt) {
+              <p class="closed-date">
+                <app-icon name="check" /> Achieved on
+                <time [attr.datetime]="item.achievedAt">{{
+                  item.achievedAt | date: 'mediumDate'
+                }}</time>
+              </p>
+            }
+            @if (!isDemo) {
+              <div class="entry-actions">
+                <button
+                  class="button button--secondary status-action"
+                  type="button"
+                  (click)="toggle(item)"
+                  [disabled]="blocked()"
+                  [attr.aria-label]="
+                    (item.status === 'achieved' ? 'Undo achievement for ' : 'Mark achieved: ') +
+                    item.title
+                  "
+                >
+                  {{ item.status === 'achieved' ? 'Undo' : 'Achieved!' }}
+                </button>
+                <button
+                  class="icon-button"
+                  type="button"
+                  [attr.aria-label]="'Edit ' + item.title"
+                  (click)="startEditing(item)"
+                  [disabled]="blocked()"
+                >
+                  <app-icon name="edit" />
+                </button>
+                <button
+                  class="icon-button"
+                  type="button"
+                  [attr.aria-label]="'Delete ' + item.title"
+                  (click)="remove(item)"
+                  [disabled]="blocked()"
+                >
+                  <app-icon name="trash" />
+                </button>
+              </div>
+            }
+          }
+        </li>
+      }
+    </ul>
+  } @else if (!store.loading() && !store.error()) {
+    <div class="empty-state">
+      <app-icon name="sparkles" />
+      <h2>Room for a little dreaming</h2>
+      <p>Add something you would love to experience together.</p>
+    </div>
+  }
+  <p class="visually-hidden" aria-live="polite" aria-atomic="true">{{ announcement() }}</p>
+</section>

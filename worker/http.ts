@@ -65,6 +65,7 @@ export function requireText(value: unknown, max: number): string {
 export async function readObject(
   request: Request,
   allowedKeys: readonly string[],
+  maxBytes = 16_384,
 ): Promise<Record<string, unknown>> {
   if (
     request.headers.get('Content-Type')?.split(';')[0]?.trim().toLowerCase() !== 'application/json'
@@ -79,7 +80,7 @@ export async function readObject(
     const result = await reader.read();
     if (result.done) break;
     length += result.value.length;
-    if (length > 16_384) {
+    if (length > maxBytes) {
       await reader.cancel();
       throw new HttpError(413, 'PAYLOAD_TOO_LARGE', 'The request is too large.');
     }

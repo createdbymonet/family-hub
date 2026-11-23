@@ -25,7 +25,7 @@ import { IconComponent } from './icon.component';
       align-items: center;
       gap: 0.5rem;
       min-height: 44px;
-      color: var(--color-primary);
+      color: var(--color-primary-ink);
       font-size: 0.875rem;
       font-weight: 650;
       text-decoration: none;

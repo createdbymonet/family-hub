@@ -1,0 +1,79 @@
+<app-page-header title="Settings" subtitle="Make this little space feel like you." />
+@if (demo) {
+  <p class="settings-note">
+    Demo preferences apply to this visit only. No account or private data is used.
+  </p>
+}
+@if (!demo && preferences.error()) {
+  <div class="settings-error" role="alert">
+    <p>{{ preferences.error() }}</p>
+    <button
+      type="button"
+      class="button button--secondary"
+      (click)="preferences.load(true)"
+      [disabled]="preferences.loading() || preferences.saving()"
+    >
+      Reload preferences
+    </button>
+  </div>
+}
+@if (!demo && preferences.loading()) {
+  <p role="status">Loading your preferences…</p>
+}
+<section class="settings-section" aria-labelledby="appearance-heading">
+  <h2 id="appearance-heading">Appearance</h2>
+  <p>Pick your colors. Your partner can choose their own.</p>
+  <fieldset [disabled]="disabled()">
+    <legend class="visually-hidden">Color theme</legend>
+    <div class="theme-options">
+      @for (theme of themes; track theme.id) {
+        <label class="theme-option" [class.is-selected]="preferences.settings().theme === theme.id">
+          <span class="theme-colors" aria-hidden="true">
+            <span [style.background-color]="theme.primary"></span>
+            <span [style.background-color]="theme.accent"></span>
+          </span>
+          <span class="theme-name">{{ theme.id }}</span>
+          <span class="theme-choice"
+            ><input
+              type="radio"
+              name="theme"
+              [value]="theme.id"
+              [checked]="preferences.settings().theme === theme.id"
+              (change)="chooseTheme(theme.id)"
+            />{{ preferences.settings().theme === theme.id ? 'Selected' : 'Choose' }}</span
+          >
+        </label>
+      }
+    </div>
+  </fieldset>
+</section>
+<section class="settings-section" aria-labelledby="display-heading">
+  <h2 id="display-heading">Display Preferences</h2>
+  <p>A little history, whenever you want it. Hidden items are always kept.</p>
+  @for (option of displayOptions; track option.key) {
+    <label class="display-option" [for]="option.key">
+      <span
+        ><strong>{{ option.label }}</strong
+        ><span class="option-hint" [id]="option.key + '-hint'">{{ option.hint }}</span></span
+      >
+      <input
+        type="checkbox"
+        [id]="option.key"
+        [checked]="preferences.settings()[option.key]"
+        [disabled]="disabled()"
+        [attr.aria-describedby]="option.key + '-hint'"
+        (change)="toggle(option.key, $event)"
+      />
+    </label>
+  }
+</section>
+<p class="settings-note">
+  {{
+    demo
+      ? 'Try a theme, then explore the demo from Menu.'
+      : 'Saved just for you, across your devices.'
+  }}
+</p>
+<p role="status" aria-live="polite">
+  {{ !demo && preferences.saving() ? 'Saving your preferences…' : announcement() }}
+</p>
