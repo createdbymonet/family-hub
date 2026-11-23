@@ -1,117 +1,246 @@
 <app-page-header title="Thanks Board" subtitle="Notice the little things. Say thank you often." />
 
-<div class="board">
+<div class="board" [attr.aria-busy]="!demo && store.loading() ? true : null">
   <p class="conversation-note"><app-icon name="heart" /> Little things, big love.</p>
+  @if (demo) {
+    <p class="mode-note">Demo Mode · Read only. These are fictional household updates.</p>
+  }
+  @if (!demo && store.loading()) {
+    <p role="status">Loading updates…</p>
+  }
+  @if (!demo && store.error()) {
+    <div class="board-error" role="alert">
+      <p>{{ store.error() }}</p>
+      <button
+        type="button"
+        class="button button--secondary"
+        (click)="store.load(true)"
+        [disabled]="store.loading()"
+      >
+        Refresh updates
+      </button>
+    </div>
+  }
+  @if (!demo && store.hasEarlier()) {
+    <button
+      type="button"
+      class="button button--secondary load-earlier"
+      (click)="store.loadEarlier()"
+      [disabled]="store.loadingEarlier() || store.loading()"
+    >
+      {{ store.loadingEarlier() ? 'Loading earlier updates…' : 'Load earlier updates' }}
+    </button>
+  }
 
   <ol #postList class="conversation" aria-label="Household updates">
-    @for (post of store.posts(); track post.id) {
-      <li class="post" [class.post--mine]="post.author === 'me'">
+    @for (post of posts(); track post.id) {
+      <li
+        class="post"
+        [class.post--mine]="isMine(post)"
+        [attr.aria-busy]="!demo && isPending(post) ? true : null"
+      >
         <div class="post-meta">
-          <span class="author">{{ post.author === 'me' ? 'You' : 'Partner' }}</span>
-          <time [attr.datetime]="post.createdAt.toISOString()">{{
-            post.createdAt | date: 'shortTime'
-          }}</time>
+          <span class="author">{{ isMine(post) ? 'You' : 'Partner' }}</span>
+          <time [attr.datetime]="post.createdAt">{{ post.createdAt | date: 'medium' }}</time>
+          @if (post.updatedAt !== post.createdAt) {
+            <span>Edited</span>
+          }
         </div>
 
-        <p class="bubble">{{ post.message }}</p>
-
-        <div class="post-reactions" role="group" aria-label="Reactions">
-          @for (label of reactionLabels; track label) {
-            @if (reactionCount(post, label); as count) {
+        @if (canWrite() && editingPost()?.id === post.id) {
+          <form class="post-editor" [formGroup]="editor" (ngSubmit)="saveEdit()">
+            <label [for]="'edit-message-' + post.id">Edit your update</label>
+            @if (isMissing(post)) {
+              <p role="status">
+                This update was removed on another device. Your draft is kept here so you can copy
+                it before cancelling.
+              </p>
+            } @else if (post.version !== editingPost()?.version) {
+              <p role="status">
+                This update changed on another device. Latest saved text: {{ post.message }}. Copy
+                your draft, then cancel editing to review the latest version.
+              </p>
+            }
+            <textarea
+              #editInput
+              [id]="'edit-message-' + post.id"
+              formControlName="message"
+              class="field"
+              rows="3"
+              [maxlength]="messageLimit"
+              [readOnly]="isPending(post)"
+              [attr.aria-invalid]="editError() ? true : null"
+              [attr.aria-describedby]="editError() ? 'edit-message-error' : null"
+              (input)="editError.set('')"
+            ></textarea>
+            @if (editError()) {
+              <p id="edit-message-error" class="form-error" role="alert">{{ editError() }}</p>
+            }
+            <div class="post-actions">
+              <button
+                type="submit"
+                class="button button--primary"
+                [disabled]="
+                  isPending(post) || isMissing(post) || post.version !== editingPost()?.version
+                "
+              >
+                {{ isPending(post) ? 'Saving…' : 'Save update' }}
+              </button>
               <button
                 type="button"
-                class="reaction-chip"
-                [class.is-selected]="hasReacted(post, label)"
-                [attr.aria-pressed]="hasReacted(post, label)"
-                [attr.aria-label]="
-                  label +
-                  ', ' +
-                  count +
-                  ' reaction' +
-                  (count === 1 ? '' : 's') +
-                  '. Toggle your reaction.'
-                "
-                (click)="react(post, label)"
+                class="button button--secondary"
+                (click)="cancelEditing()"
+                [disabled]="isPending(post)"
               >
-                <span lang="ja">{{ label }}</span>
-                @if (count > 1) {
-                  <span class="reaction-count">{{ count }}</span>
-                }
-                @if (hasReacted(post, label)) {
-                  <app-icon name="check" />
-                }
+                Cancel
               </button>
+            </div>
+          </form>
+        } @else {
+          <p class="bubble">{{ post.message }}</p>
+        }
+
+        @if (canWrite() && isMine(post) && editingPost()?.id !== post.id) {
+          <div class="post-actions" role="group" aria-label="Manage your update">
+            <button
+              type="button"
+              class="post-action"
+              (click)="startEditing(post)"
+              [disabled]="isPending(post)"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              class="post-action"
+              (click)="remove(post)"
+              [disabled]="isPending(post)"
+            >
+              Delete
+            </button>
+          </div>
+        }
+
+        <div class="post-reactions" role="group" aria-label="Reactions">
+          @for (option of reactionOptions; track option.code) {
+            @if (reactionCount(post, option.code); as count) {
+              @if (canWrite()) {
+                <button
+                  type="button"
+                  class="reaction-chip"
+                  [class.is-selected]="hasReacted(post, option.code)"
+                  [attr.aria-pressed]="hasReacted(post, option.code)"
+                  [attr.aria-label]="
+                    option.label +
+                    ', ' +
+                    count +
+                    ' reaction' +
+                    (count === 1 ? '' : 's') +
+                    '. Toggle your reaction.'
+                  "
+                  (click)="react(post, option.code)"
+                  [disabled]="isPending(post)"
+                >
+                  <span lang="ja">{{ option.label }}</span>
+                  @if (count > 1) {
+                    <span class="reaction-count">{{ count }}</span>
+                  }
+                  @if (hasReacted(post, option.code)) {
+                    <app-icon name="check" />
+                  }
+                </button>
+              } @else {
+                <span
+                  class="reaction-chip"
+                  [attr.aria-label]="option.label + ', ' + count + ' reactions'"
+                  ><span lang="ja">{{ option.label }}</span>
+                  @if (count > 1) {
+                    <span class="reaction-count">{{ count }}</span>
+                  }
+                </span>
+              }
             }
           }
 
-          <button
-            type="button"
-            class="react-toggle"
-            [id]="'reaction-toggle-' + post.id"
-            [attr.aria-label]="
-              'Choose a reaction to ' +
-              (post.author === 'me' ? 'your' : 'your partner’s') +
-              ' update'
-            "
-            [attr.aria-expanded]="openReactionPostId() === post.id"
-            [attr.aria-controls]="
-              openReactionPostId() === post.id ? 'reaction-options-' + post.id : null
-            "
-            (click)="toggleReactionOptions(post.id)"
-          >
-            <app-icon name="smile" />
-            <span>{{ openReactionPostId() === post.id ? 'Close' : 'React' }}</span>
-          </button>
+          @if (canWrite()) {
+            <button
+              type="button"
+              class="react-toggle"
+              [id]="'reaction-toggle-' + post.id"
+              [attr.aria-label]="
+                'Choose a reaction to ' + (isMine(post) ? 'your' : 'your partner’s') + ' update'
+              "
+              [attr.aria-expanded]="openReactionPostId() === post.id"
+              [attr.aria-controls]="
+                openReactionPostId() === post.id ? 'reaction-options-' + post.id : null
+              "
+              (click)="toggleReactionOptions(post.id)"
+              [disabled]="isPending(post)"
+            >
+              <app-icon name="smile" /><span>{{
+                openReactionPostId() === post.id ? 'Close' : 'React'
+              }}</span>
+            </button>
+          }
         </div>
 
-        @if (openReactionPostId() === post.id) {
+        @if (canWrite() && openReactionPostId() === post.id) {
           <div
             class="reaction-options"
             [id]="'reaction-options-' + post.id"
             role="group"
             aria-label="Choose a positive reaction"
           >
-            @for (label of reactionLabels; track label) {
+            @for (option of reactionOptions; track option.code) {
               <button
                 type="button"
-                [class.is-selected]="hasReacted(post, label)"
-                [attr.aria-pressed]="hasReacted(post, label)"
-                [attr.aria-label]="'React: ' + label"
-                (click)="react(post, label)"
+                [class.is-selected]="hasReacted(post, option.code)"
+                [attr.aria-pressed]="hasReacted(post, option.code)"
+                [attr.aria-label]="'React: ' + option.label"
+                (click)="react(post, option.code)"
+                [disabled]="isPending(post)"
               >
-                <span lang="ja">{{ label }}</span>
+                <span lang="ja">{{ option.label }}</span>
               </button>
             }
           </div>
         }
       </li>
     } @empty {
-      <li class="empty-state">Start with a small win. Your first update belongs here.</li>
+      @if (demo || !store.loading()) {
+        <li class="empty-state">Start with a small win. Your first update belongs here.</li>
+      }
     }
   </ol>
 
-  <form class="composer" [formGroup]="composer" (ngSubmit)="send()">
-    <label for="thanks-message">Share a little win</label>
-    <textarea
-      #messageInput
-      id="thanks-message"
-      formControlName="message"
-      class="field"
-      placeholder="What did you do today?"
-      rows="2"
-      [attr.aria-invalid]="error() ? true : null"
-      [attr.aria-describedby]="error() ? 'composer-hint composer-error' : 'composer-hint'"
-      (input)="error.set('')"
-      (keydown)="onComposerKeydown($event)"
-    ></textarea>
-    @if (error()) {
-      <p id="composer-error" class="form-error" role="alert">{{ error() }}</p>
-    }
-    <div class="composer-actions">
-      <p id="composer-hint">Enter to send · Shift + Enter for a new line</p>
-      <button type="submit" class="button button--primary"><app-icon name="send" /> Send</button>
-    </div>
-  </form>
+  @if (canWrite()) {
+    <form class="composer" [formGroup]="composer" (ngSubmit)="send()">
+      <label for="thanks-message">Share a little win</label>
+      <textarea
+        #messageInput
+        id="thanks-message"
+        formControlName="message"
+        class="field"
+        placeholder="What did you do today?"
+        rows="2"
+        [maxlength]="messageLimit"
+        [readOnly]="store.creating()"
+        [attr.aria-invalid]="error() ? true : null"
+        [attr.aria-describedby]="error() ? 'composer-hint composer-error' : 'composer-hint'"
+        (input)="error.set('')"
+        (keydown)="onComposerKeydown($event)"
+      ></textarea>
+      @if (error()) {
+        <p id="composer-error" class="form-error" role="alert">{{ error() }}</p>
+      }
+      <div class="composer-actions">
+        <p id="composer-hint">Enter to send · Shift + Enter for a new line</p>
+        <button type="submit" class="button button--primary" [disabled]="store.creating()">
+          <app-icon name="send" /> {{ store.creating() ? 'Sending…' : 'Send' }}
+        </button>
+      </div>
+    </form>
+  }
 </div>
 
 <p class="visually-hidden" role="status" aria-live="polite">{{ announcement() }}</p>

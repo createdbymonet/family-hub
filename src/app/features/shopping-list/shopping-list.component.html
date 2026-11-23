@@ -4,6 +4,12 @@
 />
 
 <section class="shopping-panel" aria-label="Your shopping list">
+  <p class="eyebrow">
+    {{ isDemo ? 'Demo Mode · Read only' : 'Family Mode · Shared with your partner' }}
+  </p>
+  @if (isDemo) {
+    <p>Explore a fictional shopping list. Sign in to manage your family’s list.</p>
+  }
   <div class="list-intro">
     <span class="list-icon" aria-hidden="true"><app-icon name="basket" /></span>
     <div>
@@ -12,26 +18,58 @@
     </div>
   </div>
 
-  <form class="add-form" [formGroup]="addForm" (ngSubmit)="addItem()" novalidate>
-    <label class="visually-hidden" for="new-item">New shopping item</label>
-    <input
-      #addInput
-      id="new-item"
-      class="field"
-      type="text"
-      placeholder="Add an item..."
-      autocomplete="off"
-      [formControl]="addControl"
-      [attr.aria-invalid]="addError()"
-      [attr.aria-describedby]="addError() ? 'add-error' : null"
-      (input)="addError.set(false)"
-      (keydown)="addOnEnter($event)"
-    />
-    <button class="button button--primary" type="submit"><app-icon name="plus" /> Add</button>
-    @if (addError()) {
-      <p id="add-error" class="form-error" role="alert">Give your item a name first.</p>
-    }
-  </form>
+  @if (!isDemo) {
+    <form class="add-form" [formGroup]="addForm" (ngSubmit)="addItem()" novalidate>
+      <label class="visually-hidden" for="new-item">New shopping item</label>
+      <input
+        #addInput
+        id="new-item"
+        class="field"
+        type="text"
+        placeholder="Add an item..."
+        autocomplete="off"
+        [maxLength]="nameLimit"
+        [readOnly]="store.saving() || store.loading()"
+        [formControl]="addControl"
+        [attr.aria-invalid]="addError()"
+        [attr.aria-describedby]="addError() ? 'add-error' : null"
+        (input)="addError.set(false)"
+        (keydown)="addOnEnter($event)"
+      />
+      <button
+        class="button button--primary"
+        type="submit"
+        [disabled]="store.saving() || store.loading()"
+      >
+        <app-icon name="plus" /> Add
+      </button>
+      @if (addError()) {
+        <p id="add-error" class="form-error" role="alert">
+          Give your item a name of 1–{{ nameLimit }} characters.
+        </p>
+      }
+    </form>
+  }
+
+  @if (store.loading()) {
+    <p role="status">Loading your shopping list…</p>
+  }
+  @if (store.saving()) {
+    <p role="status">Saving your change…</p>
+  }
+  @if (store.error()) {
+    <div class="form-error" role="alert">
+      <p>{{ store.error() }}</p>
+      <button
+        class="button button--quiet"
+        type="button"
+        (click)="retry()"
+        [disabled]="store.loading() || store.saving()"
+      >
+        Refresh list
+      </button>
+    </div>
+  }
 
   <div class="list-summary">
     <p>{{ store.remainingCount() }} to pick up</p>
@@ -50,7 +88,8 @@
               type="checkbox"
               [id]="'item-' + item.id"
               [checked]="item.completed"
-              (change)="toggleItem(item)"
+              [disabled]="isDemo || store.saving() || store.loading()"
+              (change)="toggleItem(item, $event)"
             />
           </label>
           <label
@@ -72,32 +111,47 @@
                 #editInput
                 class="field"
                 type="text"
+                [maxLength]="nameLimit"
+                [readOnly]="store.saving() || store.loading()"
                 [id]="'edit-' + item.id"
                 [formControl]="editControl"
                 [attr.aria-invalid]="editError()"
                 [attr.aria-describedby]="editError() ? 'edit-error' : null"
                 (input)="editError.set(false)"
                 (keydown.escape)="cancelEditing()"
+                (keydown)="editOnEnter($event, item.id)"
               />
               @if (editError()) {
-                <p id="edit-error" class="form-error" role="alert">An item needs a name.</p>
+                <p id="edit-error" class="form-error" role="alert">
+                  An item needs a name of 1–{{ nameLimit }} characters.
+                </p>
               }
               <div class="edit-actions">
-                <button class="button button--primary" type="submit">
+                <button
+                  class="button button--primary"
+                  type="submit"
+                  [disabled]="store.saving() || store.loading()"
+                >
                   <app-icon name="check" /> Save
                 </button>
-                <button class="button button--quiet" type="button" (click)="cancelEditing()">
+                <button
+                  class="button button--quiet"
+                  type="button"
+                  (click)="cancelEditing()"
+                  [disabled]="store.saving()"
+                >
                   Cancel
                 </button>
               </div>
             </form>
-          } @else {
+          } @else if (!isDemo) {
             <div class="item-actions">
               <button
                 class="icon-button"
                 type="button"
                 [attr.aria-label]="'Edit ' + item.name"
                 (click)="startEditing(item)"
+                [disabled]="store.saving() || store.loading()"
               >
                 <app-icon name="edit" />
               </button>
@@ -106,6 +160,7 @@
                 type="button"
                 [attr.aria-label]="'Delete ' + item.name"
                 (click)="deleteItem(item)"
+                [disabled]="store.saving() || store.loading()"
               >
                 <app-icon name="trash" />
               </button>
@@ -114,7 +169,7 @@
         </li>
       }
     </ul>
-  } @else {
+  } @else if (!store.loading() && !store.error()) {
     <div class="empty-state">
       <app-icon name="basket" />
       <h3>A fresh little list</h3>
