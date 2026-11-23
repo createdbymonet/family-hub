@@ -75,7 +75,7 @@
   align-items: flex-end;
   align-self: flex-end;
 
-  .post-meta .author {
+  .author {
     color: var(--color-primary);
   }
 
@@ -115,7 +115,9 @@
   font-size: 0.76rem;
   font-weight: 600;
   cursor: pointer;
+}
 
+:is(.reaction-chip, .react-toggle, .reaction-options button) {
   app-icon {
     width: 15px;
     height: 15px;
@@ -188,10 +190,6 @@
     max-height: 35svh;
     resize: vertical;
   }
-
-  .form-error {
-    margin: 8px 0 0;
-  }
 }
 
 .composer-actions {
@@ -227,9 +225,64 @@
     animation: none;
   }
 
-  .reaction-chip:active,
-  .react-toggle:active,
-  .reaction-options button:active {
+  :is(.reaction-chip, .react-toggle, .reaction-options button):active {
     transform: none;
   }
+}
+
+.mode-note {
+  color: var(--color-text-muted);
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.board-error {
+  margin-block: 16px;
+  color: var(--color-text);
+}
+
+.load-earlier {
+  margin-bottom: 20px;
+}
+
+.post-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.post-action {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 12px;
+  color: var(--color-text-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.post-editor {
+  width: min(420px, 100%);
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 100px;
+    resize: vertical;
+  }
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+span.reaction-chip {
+  cursor: default;
 }

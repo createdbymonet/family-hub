@@ -2,6 +2,23 @@
   display: block;
 }
 
+.family-links {
+  margin-top: 28px;
+  h2 {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+  }
+  p {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+  div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
 .menu-intro {
   padding-block: 20px 32px;
 

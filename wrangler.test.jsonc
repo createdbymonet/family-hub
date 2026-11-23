@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "family-hub-test",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-24",
+  "vars": {
+    "APP_ORIGIN": "https://family-hub.test",
+    "GOOGLE_CLIENT_ID": "test-client-id",
+    "GOOGLE_CLIENT_SECRET": "test-only-not-a-real-secret",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "family-hub-test",
+      "database_id": "00000000-0000-0000-0000-000000000001",
+      "migrations_dir": "migrations",
+    },
+  ],
+}

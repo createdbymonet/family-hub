@@ -1,0 +1,4 @@
+# Copy to .dev.vars (gitignored). Never put real credentials in this example.
+APP_ORIGIN="https://localhost:4200"
+GOOGLE_CLIENT_ID="replace-with-your-development-client-id"
+GOOGLE_CLIENT_SECRET="replace-with-your-development-client-secret"

@@ -4,8 +4,28 @@
   "compatibility_date": "2026-10-24",
   "workers_dev": true,
   "preview_urls": false,
+  "main": "worker/index.ts",
+  "vars": {
+    "APP_ORIGIN": "https://family-hub.sumihana.workers.dev",
+    "GOOGLE_CLIENT_ID": "299268730517-o86o312an7sp65joi5r9j1ivtblm8t6t.apps.googleusercontent.com",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "family-hub-production",
+      "database_id": "280f02ea-aae3-4e26-ad1b-828d63cd82fb",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "observability": {
+    "enabled": true,
+    "redact_query_string": true,
+    "traces": { "enabled": true },
+  },
   "assets": {
     "directory": "./dist/family-hub/browser",
     "not_found_handling": "single-page-application",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api", "/api/*"],
   },
 }

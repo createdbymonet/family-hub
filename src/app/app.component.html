@@ -5,15 +5,33 @@
       <span class="brand-mark"><app-icon name="home" /></span>
       <span>Family Hub<span class="brand-caption">A little more together</span></span>
     </a>
-    <span class="header-sparkle"><app-icon name="sparkles" /></span>
+    @if (auth.session() && !isDemo()) {
+      <button
+        class="button button--quiet"
+        type="button"
+        [disabled]="auth.loggingOut()"
+        (click)="logout()"
+      >
+        {{ auth.loggingOut() ? 'Signing out…' : 'Sign out' }}
+      </button>
+    } @else {
+      <a class="button button--quiet" routerLink="/login">Sign in</a>
+    }
   </header>
 
   <main id="main-content" tabindex="-1">
+    @if (isDemo()) {
+      <p class="mode-banner"><strong>Demo Mode</strong> · Sample data · Read only</p>
+    } @else if (isFamily() && auth.session()) {
+      <p class="mode-banner"><strong>Family Mode</strong> · Your private household</p>
+    }
     <router-outlet />
   </main>
 
   <footer class="app-footer">
     <app-icon name="heart" />
-    <p>A little demo for everyday life.<br /><span>Changes stay here until you refresh.</span></p>
+    <p>
+      A little more together.<br /><span>Explore the demo, or sign in to your family space.</span>
+    </p>
   </footer>
 </div>
