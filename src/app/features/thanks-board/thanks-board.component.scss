@@ -76,13 +76,13 @@
   align-self: flex-end;
 
   .author {
-    color: var(--color-primary);
+    color: var(--color-primary-ink);
   }
 
   .bubble {
     border-radius: 20px 20px 6px 20px;
     color: var(--color-surface);
-    background: var(--color-primary);
+    background: var(--color-primary-ink);
   }
 
   .post-reactions {
@@ -133,8 +133,8 @@
   }
 
   &.is-selected {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
+    border-color: var(--color-primary-ink);
+    color: var(--color-primary-ink);
     background: var(--color-primary-light);
   }
 }
@@ -184,11 +184,8 @@
   }
 
   textarea {
-    display: block;
-    width: 100%;
     min-height: 86px;
     max-height: 35svh;
-    resize: vertical;
   }
 }
 
@@ -272,9 +269,7 @@
   }
 
   textarea {
-    width: 100%;
     min-height: 100px;
-    resize: vertical;
   }
 }
 

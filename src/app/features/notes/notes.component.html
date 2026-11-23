@@ -1,0 +1,230 @@
+<app-page-header title="Notes" subtitle="A little space for things we want to remember." />
+
+<section class="collection" aria-label="Your shared notes">
+  <p class="eyebrow">
+    {{ isDemo ? 'Demo Mode · Read only' : 'Family Mode · Shared with your partner' }}
+  </p>
+  @if (isDemo) {
+    <p class="mode-note">Explore these fictional notes. Select a title to read the whole note.</p>
+  }
+
+  @if (!isDemo) {
+    <form class="entry-form" [formGroup]="addForm" (ngSubmit)="add()" novalidate>
+      <h2><app-icon name="edit" /> Leave a little note</h2>
+      <label for="note-title">Title</label>
+      <input
+        #addInput
+        id="note-title"
+        class="field"
+        formControlName="title"
+        placeholder="What’s on your mind?"
+        [maxLength]="limits.noteTitle"
+        [readOnly]="blocked()"
+        [attr.aria-invalid]="addError()"
+        [attr.aria-describedby]="addError() ? 'note-add-error' : null"
+        (keydown)="preventImeSubmit($event)"
+        (input)="addError.set(false)"
+      />
+      <label for="note-body">Note</label>
+      <textarea
+        id="note-body"
+        class="field"
+        formControlName="body"
+        rows="4"
+        placeholder="Something to share, remember, or figure out together."
+        [maxLength]="limits.noteBody"
+        [readOnly]="blocked()"
+        [attr.aria-invalid]="addError()"
+        [attr.aria-describedby]="addError() ? 'note-add-error' : null"
+        (input)="addError.set(false)"
+      ></textarea>
+      @if (addError()) {
+        <p id="note-add-error" class="form-error" role="alert">
+          A title (1–{{ limits.noteTitle }} characters) and a note (1–{{ limits.noteBody }}
+          characters) are required.
+        </p>
+      }
+      <button class="button button--primary" type="submit" [disabled]="blocked()">
+        <app-icon name="plus" /> Add a note
+      </button>
+    </form>
+  }
+
+  @if (store.loading()) {
+    <p role="status">Loading your notes…</p>
+  }
+  @if (store.saving()) {
+    <p role="status">Saving your change…</p>
+  }
+  @if (store.error()) {
+    <div class="form-error collection-error" role="alert">
+      <p>{{ store.error() }}</p>
+      <button
+        class="button button--quiet"
+        type="button"
+        (click)="retry()"
+        [disabled]="store.loading() || store.saving()"
+      >
+        Refresh list
+      </button>
+    </div>
+  }
+
+  <div class="collection-summary">
+    <p>{{ openCount() }} open {{ openCount() === 1 ? 'note' : 'notes' }}</p>
+    @if (hiddenCount()) {
+      <a [routerLink]="isDemo ? '/demo/settings' : '/settings'"
+        >{{ hiddenCount() }} resolved · Show in Settings</a
+      >
+    }
+  </div>
+
+  @if (visibleItems().length) {
+    <ul class="entry-list">
+      @for (item of visibleItems(); track item.id) {
+        <li class="entry-card" [class.is-closed]="item.status === 'resolved'">
+          @if (editing()?.id === item.id) {
+            <form
+              class="edit-form"
+              [formGroup]="editForm"
+              (ngSubmit)="save()"
+              novalidate
+              (keydown.escape)="cancelEditing()"
+            >
+              <label [for]="'note-edit-title-' + item.id">Title</label>
+              <input
+                #editInput
+                class="field"
+                [id]="'note-edit-title-' + item.id"
+                formControlName="title"
+                [maxLength]="limits.noteTitle"
+                [readOnly]="blocked()"
+                [attr.aria-invalid]="editError()"
+                [attr.aria-describedby]="editError() ? 'note-edit-error' : null"
+                (keydown)="preventImeSubmit($event)"
+                (input)="editError.set(false)"
+              />
+              <label [for]="'note-edit-body-' + item.id">Note</label>
+              <textarea
+                class="field"
+                [id]="'note-edit-body-' + item.id"
+                formControlName="body"
+                rows="6"
+                [maxLength]="limits.noteBody"
+                [readOnly]="blocked()"
+                [attr.aria-invalid]="editError()"
+                [attr.aria-describedby]="editError() ? 'note-edit-error' : null"
+                (input)="editError.set(false)"
+              ></textarea>
+              @if (editError()) {
+                <p id="note-edit-error" class="form-error" role="alert">
+                  A title (1–{{ limits.noteTitle }} characters) and a note (1–{{ limits.noteBody }}
+                  characters) are required.
+                </p>
+              }
+              @if (editingMissing()) {
+                <p role="status">
+                  This note was removed on another device. Your draft is kept here so you can copy
+                  it before cancelling.
+                </p>
+              }
+              <div class="entry-actions">
+                <button
+                  class="button button--primary"
+                  type="submit"
+                  [disabled]="blocked() || editingMissing()"
+                >
+                  Save changes
+                </button>
+                <button
+                  class="button button--quiet"
+                  type="button"
+                  (click)="cancelEditing()"
+                  [disabled]="store.saving()"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          } @else {
+            <span class="status-badge">{{ item.status === 'resolved' ? 'Resolved' : 'Open' }}</span>
+            <h2>
+              <button
+                class="note-title"
+                type="button"
+                [attr.aria-expanded]="expandedId() === item.id"
+                [attr.aria-controls]="'note-detail-' + item.id"
+                (click)="toggleDetail(item)"
+              >
+                {{ item.title
+                }}<span class="detail-hint">{{
+                  expandedId() === item.id ? 'Hide note' : 'Read note'
+                }}</span>
+              </button>
+            </h2>
+            @if (expandedId() === item.id) {
+              <div class="entry-body note-detail" [id]="'note-detail-' + item.id">
+                {{ item.body }}
+              </div>
+            } @else {
+              <p class="entry-body note-preview">{{ preview(item.body) }}</p>
+              <div [id]="'note-detail-' + item.id" hidden></div>
+            }
+            <p class="entry-meta">
+              Added by {{ item.authorName }} · Updated
+              <time [attr.datetime]="item.updatedAt">{{ item.updatedAt | date: 'medium' }}</time>
+            </p>
+            @if (item.resolvedAt) {
+              <p class="closed-date">
+                <app-icon name="check" /> Resolved on
+                <time [attr.datetime]="item.resolvedAt">{{
+                  item.resolvedAt | date: 'mediumDate'
+                }}</time>
+              </p>
+            }
+            @if (!isDemo) {
+              <div class="entry-actions">
+                <button
+                  class="button button--secondary status-action"
+                  type="button"
+                  (click)="toggle(item)"
+                  [disabled]="blocked()"
+                  [attr.aria-label]="
+                    (item.status === 'resolved' ? 'Reopen ' : 'Mark as Resolved: ') + item.title
+                  "
+                >
+                  {{ item.status === 'resolved' ? 'Reopen' : 'Mark as Resolved' }}
+                </button>
+                <button
+                  class="icon-button"
+                  type="button"
+                  [attr.aria-label]="'Edit ' + item.title"
+                  (click)="startEditing(item)"
+                  [disabled]="blocked()"
+                >
+                  <app-icon name="edit" />
+                </button>
+                <button
+                  class="icon-button"
+                  type="button"
+                  [attr.aria-label]="'Delete ' + item.title"
+                  (click)="remove(item)"
+                  [disabled]="blocked()"
+                >
+                  <app-icon name="trash" />
+                </button>
+              </div>
+            }
+          }
+        </li>
+      }
+    </ul>
+  } @else if (!store.loading() && !store.error()) {
+    <div class="empty-state">
+      <app-icon name="edit" />
+      <h2>A fresh page for the two of you</h2>
+      <p>Leave an idea, a reminder, or something to talk about.</p>
+    </div>
+  }
+  <p class="visually-hidden" aria-live="polite" aria-atomic="true">{{ announcement() }}</p>
+</section>

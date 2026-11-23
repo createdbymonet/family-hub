@@ -181,15 +181,20 @@ describe('ThanksBoardComponent', () => {
     toggle.click();
     await fixture.whenStable();
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
-    find<HTMLButtonElement>('.reaction-options [aria-label="React: ❤️"]').click();
+    const options = [...element.querySelectorAll('.reaction-options button')].map((b) =>
+      b.textContent?.trim(),
+    );
+    expect(options).toEqual(['Thanks a lot!', 'Thank you!', 'Awesome!', '❤️', '👏']);
+    expect(find('.reaction-options [aria-label="React: Clap"]').textContent).toContain('👏');
+    find<HTMLButtonElement>('.reaction-options [aria-label="React: Heart"]').click();
     await fixture.whenStable();
     expect(api.setReaction).toHaveBeenLastCalledWith('partner-post', 'heart', true);
-    const chip = find<HTMLButtonElement>('.post .reaction-chip[aria-label^="❤️"]');
+    const chip = find<HTMLButtonElement>('.post .reaction-chip[aria-label^="Heart"]');
     expect(chip.getAttribute('aria-pressed')).toBe('true');
     chip.click();
     await fixture.whenStable();
     expect(api.setReaction).toHaveBeenLastCalledWith('partner-post', 'heart', false);
-    expect(element.querySelector('.post .reaction-chip[aria-label^="❤️"]')).toBeNull();
+    expect(element.querySelector('.post .reaction-chip[aria-label^="Heart"]')).toBeNull();
   });
 
   it('only displays author management controls on own posts and supports editing', async () => {

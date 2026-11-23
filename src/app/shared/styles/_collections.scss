@@ -1,0 +1,126 @@
+:host {
+  display: block;
+}
+.collection {
+  min-width: 0;
+}
+.mode-note {
+  color: var(--color-text-muted);
+}
+.entry-form,
+.entry-card {
+  padding: clamp(18px, 4vw, 26px);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+.entry-form {
+  display: grid;
+  gap: 10px;
+  margin: 22px 0;
+  border-top: 3px solid var(--color-primary-ink);
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 5px;
+    font-size: 1.125rem;
+  }
+  > button {
+    justify-self: start;
+    margin-top: 4px;
+  }
+}
+label {
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+.optional {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+.collection-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 22px 0 14px;
+  p {
+    margin: 0;
+    font-weight: 650;
+  }
+  a {
+    color: var(--color-primary-ink);
+    font-size: 0.875rem;
+    text-underline-offset: 3px;
+  }
+}
+.entry-list {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.entry-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  h2 {
+    margin: 12px 0 8px;
+    font-size: 1.2rem;
+    line-height: 1.4;
+  }
+  &.is-closed {
+    border-color: color-mix(in srgb, var(--color-secondary) 35%, var(--color-border));
+  }
+}
+.entry-body {
+  margin: 0 0 16px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.entry-meta {
+  margin: 12px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+.status-badge {
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: 6px;
+  color: var(--color-primary-ink);
+  background: var(--color-primary-light);
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+.is-closed .status-badge {
+  color: var(--color-secondary);
+  background: var(--color-secondary-light);
+}
+.closed-date {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-secondary);
+  font-size: 0.875rem;
+}
+.entry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+}
+.status-action {
+  margin-right: auto;
+}
+.edit-form {
+  display: grid;
+  gap: 10px;
+}
+.collection-error {
+  margin-block: 16px;
+}

@@ -1,12 +1,14 @@
 :root {
   color-scheme: light;
-  --color-primary: #07777d;
-  --color-primary-hover: #06636a;
-  --color-primary-light: #e3f5f3;
+  --color-primary: #8e1728;
+  --color-accent: #c5a052;
+  --color-primary-ink: var(--color-primary);
+  --color-primary-hover: color-mix(in srgb, var(--color-primary-ink) 85%, black);
+  --color-primary-light: color-mix(in srgb, var(--color-primary) 9%, white);
   --color-on-primary: #ffffff;
-  --color-secondary: #483473;
-  --color-secondary-light: #f0eafa;
-  --color-background: #f5f7fa;
+  --color-secondary: color-mix(in srgb, var(--color-accent) 50%, #24303f);
+  --color-secondary-light: color-mix(in srgb, var(--color-accent) 12%, white);
+  --color-background: color-mix(in srgb, var(--color-primary) 3%, #f5f7fa);
   --color-surface: #ffffff;
   --color-text: #24303f;
   --color-text-muted: #606c7c;
@@ -26,6 +28,18 @@
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+}
+
+:root[data-theme='CHARLOTTE'] {
+  --color-primary: #00a3b5;
+  --color-accent: #7952c7;
+  // Darker ink keeps small text and white button labels readable.
+  --color-primary-ink: color-mix(in srgb, var(--color-primary) 72%, black);
+}
+
+:root[data-theme='EDOGAWA'] {
+  --color-primary: #123f80;
+  --color-accent: #f28c28;
 }
 
 *,
@@ -48,7 +62,7 @@ a {
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-primary);
+  outline: 3px solid var(--color-primary-ink);
   outline-offset: 4px;
 }
 
@@ -89,7 +103,7 @@ svg {
   display: block;
 }
 input[type='checkbox'] {
-  accent-color: var(--color-primary);
+  accent-color: var(--color-primary-ink);
 }
 
 @media (prefers-reduced-motion: reduce) {

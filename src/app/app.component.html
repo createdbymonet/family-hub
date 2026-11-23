@@ -5,18 +5,25 @@
       <span class="brand-mark"><app-icon name="home" /></span>
       <span>Family Hub<span class="brand-caption">A little more together</span></span>
     </a>
-    @if (auth.session() && !isDemo()) {
-      <button
-        class="button button--quiet"
-        type="button"
-        [disabled]="auth.loggingOut()"
-        (click)="logout()"
-      >
-        {{ auth.loggingOut() ? 'Signing out…' : 'Sign out' }}
-      </button>
-    } @else {
-      <a class="button button--quiet" routerLink="/login">Sign in</a>
-    }
+    <nav class="header-actions" aria-label="Account and appearance">
+      @if (isDemo()) {
+        <a class="button button--quiet" routerLink="/demo/settings">Settings</a>
+      } @else if (auth.session()) {
+        <a class="button button--quiet" routerLink="/settings">Settings</a>
+      }
+      @if (auth.session() && !isDemo()) {
+        <button
+          class="button button--quiet"
+          type="button"
+          [disabled]="auth.loggingOut()"
+          (click)="logout()"
+        >
+          {{ auth.loggingOut() ? 'Signing out…' : 'Sign out' }}
+        </button>
+      } @else {
+        <a class="button button--quiet" routerLink="/login">Sign in</a>
+      }
+    </nav>
   </header>
 
   <main id="main-content" tabindex="-1">

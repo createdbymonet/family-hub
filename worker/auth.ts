@@ -17,12 +17,16 @@ interface OAuthTransaction {
   nonce_hash: string;
   verifier_hash: string;
   browser_hash: string;
-  return_to: string;
 }
 
 function authConfigured(env: Cloudflare.Env): void {
   appOrigin(env);
-  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
+  const missingBindings = (['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'] as const).filter(
+    (name) => !env[name]?.trim(),
+  );
+  if (missingBindings.length) {
+    // Names only: never log OAuth credentials, callback URLs, or browser secrets.
+    console.error(JSON.stringify({ event: 'oauth_not_configured', missingBindings }));
     throw new HttpError(503, 'NOT_CONFIGURED', 'Google sign-in is not configured.');
   }
 }
@@ -31,11 +35,8 @@ export function clearOAuthCookie(): string {
   return protectedCookie(OAUTH_COOKIE, '', 0);
 }
 
-export async function startGoogleSignIn(request: Request, env: Cloudflare.Env): Promise<Response> {
+export async function startGoogleSignIn(_request: Request, env: Cloudflare.Env): Promise<Response> {
   authConfigured(env);
-  const url = new URL(request.url);
-  const requestedReturn = url.searchParams.get('returnTo');
-  const returnTo = requestedReturn === '/thanks-board' ? '/thanks-board' : '/shopping-list';
   const state = randomToken();
   const secrets: OAuthCookie = {
     nonce: randomToken(),
@@ -43,17 +44,18 @@ export async function startGoogleSignIn(request: Request, env: Cloudflare.Env): 
     browser: randomToken(),
   };
   const now = Date.now();
+  // Keep the legacy column compatible with the previous Worker during rollout.
+  // It is no longer derived from input or used as a redirect destination.
   await env.DB.batch([
     env.DB.prepare('DELETE FROM oauth_transactions WHERE expires_at <= ?').bind(now),
     env.DB.prepare(
       `INSERT INTO oauth_transactions(state_hash,nonce_hash,verifier_hash,browser_hash,return_to,expires_at)
-       VALUES(?,?,?,?,?,?)`,
+       VALUES(?,?,?,?,'/shopping-list',?)`,
     ).bind(
       await sha256(state),
       await sha256(secrets.nonce),
       await sha256(secrets.verifier),
       await sha256(secrets.browser),
-      returnTo,
       now + OAUTH_LIFETIME,
     ),
   ]);
@@ -153,7 +155,7 @@ export async function finishGoogleSignIn(request: Request, env: Cloudflare.Env):
     `UPDATE oauth_transactions SET consumed_at = ?
       WHERE state_hash = ? AND nonce_hash = ? AND verifier_hash = ? AND browser_hash = ?
         AND expires_at > ? AND consumed_at IS NULL
-      RETURNING state_hash,nonce_hash,verifier_hash,browser_hash,return_to`,
+      RETURNING state_hash,nonce_hash,verifier_hash,browser_hash`,
   )
     .bind(
       now,
@@ -217,7 +219,7 @@ export async function finishGoogleSignIn(request: Request, env: Cloudflare.Env):
   }
   const response = new Response(null, {
     status: 303,
-    headers: { Location: `${appOrigin(env)}${transaction.return_to}` },
+    headers: { Location: `${appOrigin(env)}/` },
   });
   response.headers.append('Set-Cookie', await createSession(env, user.id));
   response.headers.append('Set-Cookie', clearOAuthCookie());

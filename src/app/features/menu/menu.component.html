@@ -1,41 +1,18 @@
-<section class="menu-intro" aria-labelledby="menu-heading">
-  <p class="eyebrow">Your everyday, together</p>
-  <h1 id="menu-heading">Small things.<br /><span>Better together.</span></h1>
-  <p class="menu-subtitle">Small things are easier when we share them.</p>
-</section>
-
+<h1 class="visually-hidden">Menu</h1>
 <nav class="menu-cards" aria-label="Family Hub tools">
-  <a class="menu-card menu-card--shopping" routerLink="/demo/shopping-list">
-    <span class="card-top">
-      <span class="card-icon"><app-icon name="basket" /></span>
-      <app-icon class="card-arrow" name="arrow-right" />
-    </span>
-    <span class="card-title">Shopping List</span>
-    <span class="card-description">Keep groceries and household items in sync.</span>
-    <span class="card-caption">Explore the read-only demo.</span>
-  </a>
-
-  <a class="menu-card menu-card--thanks" routerLink="/demo/thanks-board">
-    <span class="card-top">
-      <span class="card-icon"><app-icon name="heart" /></span>
-      <app-icon class="card-arrow" name="arrow-right" />
-    </span>
-    <span class="card-title">Thanks Board</span>
-    <span class="card-description">Share what you did and celebrate each other.</span>
-    <span class="card-caption">Explore the read-only demo.</span>
-  </a>
+  @for (tool of tools; track tool.path) {
+    <article class="menu-card" [class.menu-card--accent]="tool.accent">
+      <a class="card-main" [routerLink]="'/' + tool.path">
+        <span class="card-icon"><app-icon [name]="tool.icon" /></span>
+        <h2>{{ tool.title }}</h2>
+        <p>{{ tool.description }}</p>
+        <span class="card-caption">{{
+          auth.session() ? 'Open your family space' : 'Sign in to share'
+        }}</span>
+      </a>
+      <a class="card-demo" [routerLink]="'/demo/' + tool.path"
+        >Try Demo<span class="visually-hidden"> · {{ tool.title }}</span></a
+      >
+    </article>
+  }
 </nav>
-
-<section class="family-links" aria-labelledby="family-heading">
-  <h2 id="family-heading">Your family space</h2>
-  <p>Already a member? Sign in to share the everyday things.</p>
-  <div>
-    <a class="button button--primary" routerLink="/shopping-list">Family Shopping List</a>
-    <a class="button button--secondary" routerLink="/thanks-board">Family Thanks Board</a>
-  </div>
-</section>
-
-<aside class="together-note" aria-label="A little reminder">
-  <span class="note-icon"><app-icon name="sparkles" /></span>
-  <p>You make a good team.<br /><span>Even on the ordinary days.</span></p>
-</aside>

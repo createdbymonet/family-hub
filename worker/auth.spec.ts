@@ -61,13 +61,15 @@ function mockGoogle(token: string, inspectExchange?: (body: URLSearchParams) => 
   );
 }
 
-async function start(returnTo = '/thanks-board'): Promise<{
+async function start(returnTo: string | null = '/thanks-board'): Promise<{
   url: URL;
   cookie: string;
   secrets: { nonce: string; verifier: string; browser: string };
 }> {
   const response = await startGoogleSignIn(
-    new Request(`${env.APP_ORIGIN}/api/auth/google/start?returnTo=${encodeURIComponent(returnTo)}`),
+    new Request(
+      `${env.APP_ORIGIN}/api/auth/google/start${returnTo === null ? '' : `?returnTo=${encodeURIComponent(returnTo)}`}`,
+    ),
     env,
   );
   const cookie = response.headers.get('Set-Cookie')!.split(';')[0]!;
@@ -129,7 +131,7 @@ describe('Google authorization code + PKCE', () => {
     );
     expect(exchanged).toBe(true);
     expect(response.status).toBe(303);
-    expect(response.headers.get('Location')).toBe(`${env.APP_ORIGIN}/thanks-board`);
+    expect(response.headers.get('Location')).toBe(`${env.APP_ORIGIN}/`);
     const cookies = response.headers.getSetCookie();
     const sessionCookie = cookies.find((value) => value.startsWith(`${SESSION_COOKIE}=`))!;
     expect(sessionCookie).toContain('HttpOnly; Secure; SameSite=Lax');
@@ -155,6 +157,30 @@ describe('Google authorization code + PKCE', () => {
     expect(
       (await env.DB.prepare('SELECT user_id FROM sessions').first<{ user_id: string }>())?.user_id,
     ).toBe(USER_B);
+  });
+
+  it.each([null, '/shopping-list', '/thanks-board', '/notes', 'https://evil.test'])(
+    'always returns a successful sign-in to Menu, ignoring returnTo=%s',
+    async (returnTo) => {
+      const started = await start(returnTo);
+      mockGoogle(await idToken(started.secrets.nonce));
+      const response = await finishGoogleSignIn(
+        callback(started.url.searchParams.get('state')!, started.cookie),
+        env,
+      );
+      expect(response.headers.get('Location')).toBe(`${env.APP_ORIGIN}/`);
+    },
+  );
+
+  it('also ignores destinations in OAuth transactions created by the previous Worker', async () => {
+    const started = await start();
+    await env.DB.prepare("UPDATE oauth_transactions SET return_to = '/thanks-board'").run();
+    mockGoogle(await idToken(started.secrets.nonce));
+    const response = await finishGoogleSignIn(
+      callback(started.url.searchParams.get('state')!, started.cookie),
+      env,
+    );
+    expect(response.headers.get('Location')).toBe(`${env.APP_ORIGIN}/`);
   });
 
   it('rejects unregistered accounts and never inserts users', async () => {
@@ -241,13 +267,40 @@ describe('Google authorization code + PKCE', () => {
     expect((await request('/api/auth/session', 'GET', otherDevice)).status).toBe(200);
   });
 
-  it('fails closed when Google configuration is missing', async () => {
+  it.each(['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'] as const)(
+    'fails closed when %s is missing, before storing transactions or creating sessions',
+    async (name) => {
+      const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      await expect(
+        startGoogleSignIn(new Request(`${env.APP_ORIGIN}/api/auth/google/start`), {
+          ...env,
+          [name]: '',
+        }),
+      ).rejects.toMatchObject({ status: 503, code: 'NOT_CONFIGURED' });
+      expect(log).toHaveBeenCalledWith(
+        JSON.stringify({ event: 'oauth_not_configured', missingBindings: [name] }),
+      );
+      expect(
+        (
+          await env.DB.prepare('SELECT count(*) AS total FROM oauth_transactions').first<{
+            total: number;
+          }>()
+        )?.total,
+      ).toBe(0);
+      expect(
+        (await env.DB.prepare('SELECT count(*) AS total FROM sessions').first<{ total: number }>())
+          ?.total,
+      ).toBe(0);
+    },
+  );
+
+  it('rejects an invalid configured origin before Google sign-in', async () => {
     await expect(
       startGoogleSignIn(new Request(`${env.APP_ORIGIN}/api/auth/google/start`), {
         ...env,
-        GOOGLE_CLIENT_SECRET: '',
+        APP_ORIGIN: 'http://insecure.test',
       }),
-    ).rejects.toMatchObject({ status: 503 });
+    ).rejects.toMatchObject({ status: 503, code: 'NOT_CONFIGURED' });
   });
 });
 

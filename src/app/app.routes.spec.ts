@@ -23,6 +23,15 @@ describe('Family Hub navigation', () => {
       items = [...items, item];
       return item;
     }
+    if (path === '/user-settings')
+      return {
+        theme: 'KAWASAKI',
+        showCompletedShoppingItems: false,
+        showAchievedWishes: false,
+        showResolvedNotes: false,
+        version: 1,
+      };
+    if (path === '/wishes' || path === '/notes') return [];
     if (path === '/thanks-posts') return { posts: DEMO_THANKS_POSTS, nextCursor: null };
     throw new Error(`Unexpected API call: ${method} ${path}`);
   });
@@ -66,7 +75,7 @@ describe('Family Hub navigation', () => {
     ensureSession.mockResolvedValue(true);
   }
 
-  it('opens both public demos from the menu without checking or fetching private data', async () => {
+  it('opens all public demos from the menu without checking or fetching private data', async () => {
     const harness = await RouterTestingHarness.create('/');
     const link = harness.routeNativeElement?.querySelector<HTMLAnchorElement>(
       'a[href="/demo/shopping-list"]',
@@ -79,13 +88,17 @@ describe('Family Hub navigation', () => {
     await harness.navigateByUrl('/demo/thanks-board');
     expect(harness.routeNativeElement?.textContent).toContain('I made dinner today');
     expect(harness.routeNativeElement?.querySelector('form')).toBeNull();
+    await harness.navigateByUrl('/demo/wishlist');
+    expect(harness.routeNativeElement?.querySelector('form')).toBeNull();
+    await harness.navigateByUrl('/demo/notes');
+    expect(harness.routeNativeElement?.querySelector('form')).toBeNull();
     expect(ensureSession).not.toHaveBeenCalled();
     expect(request).not.toHaveBeenCalled();
   });
 
-  it('guards private direct links and preserves the intended destination', async () => {
+  it('guards private direct links and opens sign-in', async () => {
     await RouterTestingHarness.create('/thanks-board');
-    expect(TestBed.inject(Router).url).toBe('/login?returnTo=%2Fthanks-board');
+    expect(TestBed.inject(Router).url).toBe('/login');
     expect(request).not.toHaveBeenCalled();
   });
 
@@ -95,6 +108,10 @@ describe('Family Hub navigation', () => {
     expect(document.title).toBe('Shopping List | Family Hub');
     await harness.navigateByUrl('/thanks-board');
     expect(document.title).toBe('Thanks Board | Family Hub');
+    for (const feature of ['wishlist', 'notes', 'settings']) {
+      await harness.navigateByUrl('/' + feature);
+      expect(TestBed.inject(Router).url).toBe('/' + feature);
+    }
     await harness.navigateByUrl('/unknown-page');
     expect(TestBed.inject(Router).url).toBe('/');
     expect(document.title).toBe('Family Hub | Menu');

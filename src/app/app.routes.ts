@@ -46,6 +46,56 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'wishlist',
+    canActivate: [authGuard],
+    title: 'Wishlist | Family Hub',
+    loadComponent: () =>
+      import('./features/wishlist/wishlist.component').then(
+        (component) => component.WishlistComponent,
+      ),
+  },
+  {
+    path: 'notes',
+    canActivate: [authGuard],
+    title: 'Notes | Family Hub',
+    loadComponent: () =>
+      import('./features/notes/notes.component').then((component) => component.NotesComponent),
+  },
+  {
+    path: 'settings',
+    canActivate: [authGuard],
+    title: 'Settings | Family Hub',
+    loadComponent: () =>
+      import('./features/settings/settings.component').then(
+        (component) => component.SettingsComponent,
+      ),
+  },
+  {
+    path: 'demo/wishlist',
+    data: { demo: true },
+    title: 'Wishlist Demo | Family Hub',
+    loadComponent: () =>
+      import('./features/wishlist/wishlist.component').then(
+        (component) => component.WishlistComponent,
+      ),
+  },
+  {
+    path: 'demo/notes',
+    data: { demo: true },
+    title: 'Notes Demo | Family Hub',
+    loadComponent: () =>
+      import('./features/notes/notes.component').then((component) => component.NotesComponent),
+  },
+  {
+    path: 'demo/settings',
+    data: { demo: true },
+    title: 'Settings Demo | Family Hub',
+    loadComponent: () =>
+      import('./features/settings/settings.component').then(
+        (component) => component.SettingsComponent,
+      ),
+  },
+  {
     path: 'login',
     title: 'Sign in | Family Hub',
     loadComponent: () =>

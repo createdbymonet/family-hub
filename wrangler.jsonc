@@ -5,6 +5,9 @@
   "workers_dev": true,
   "preview_urls": false,
   "main": "worker/index.ts",
+  "secrets": {
+    "required": ["GOOGLE_CLIENT_SECRET"],
+  },
   "vars": {
     "APP_ORIGIN": "https://family-hub.sumihana.workers.dev",
     "GOOGLE_CLIENT_ID": "299268730517-o86o312an7sp65joi5r9j1ivtblm8t6t.apps.googleusercontent.com",

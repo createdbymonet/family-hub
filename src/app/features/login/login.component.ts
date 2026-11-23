@@ -76,17 +76,12 @@ export class LoginComponent {
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  private readonly returnTo = ['/shopping-list', '/thanks-board'].includes(
-    this.route.snapshot.queryParamMap.get('returnTo') ?? '',
-  )
-    ? this.route.snapshot.queryParamMap.get('returnTo')!
-    : '/shopping-list';
-  protected readonly loginUrl = `/api/auth/google/start?returnTo=${encodeURIComponent(this.returnTo)}`;
+  protected readonly loginUrl = '/api/auth/google/start';
   protected readonly hasAuthError = this.route.snapshot.queryParamMap.has('error');
   protected readonly sessionExpired = this.route.snapshot.queryParamMap.has('reason');
 
   protected async resume(): Promise<void> {
-    if (await this.auth.refreshSession()) await this.router.navigateByUrl(this.returnTo);
+    if (await this.auth.refreshSession()) await this.router.navigateByUrl('/');
   }
 
   protected startLogin(event: Event): void {

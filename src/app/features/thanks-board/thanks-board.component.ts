@@ -196,7 +196,8 @@ export class ThanksBoardComponent {
     if (!this.canWrite() || this.isPending(post) || this.isMissing(post)) return;
     const removing = this.hasReacted(post, code);
     if ((await this.store.setReaction(post, code, !removing)) && !this.destroyRef.destroyed) {
-      const label = this.reactionOptions.find((option) => option.code === code)?.label ?? code;
+      const label =
+        this.reactionOptions.find((option) => option.code === code)?.accessibleLabel ?? code;
       this.announcement.set(`${label} reaction ${removing ? 'removed' : 'added'}.`);
     }
   }

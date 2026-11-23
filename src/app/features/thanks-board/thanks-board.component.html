@@ -131,7 +131,7 @@
                   [class.is-selected]="hasReacted(post, option.code)"
                   [attr.aria-pressed]="hasReacted(post, option.code)"
                   [attr.aria-label]="
-                    option.label +
+                    option.accessibleLabel +
                     ', ' +
                     count +
                     ' reaction' +
@@ -141,7 +141,7 @@
                   (click)="react(post, option.code)"
                   [disabled]="isPending(post)"
                 >
-                  <span lang="ja">{{ option.label }}</span>
+                  <span>{{ option.label }}</span>
                   @if (count > 1) {
                     <span class="reaction-count">{{ count }}</span>
                   }
@@ -152,8 +152,8 @@
               } @else {
                 <span
                   class="reaction-chip"
-                  [attr.aria-label]="option.label + ', ' + count + ' reactions'"
-                  ><span lang="ja">{{ option.label }}</span>
+                  [attr.aria-label]="option.accessibleLabel + ', ' + count + ' reactions'"
+                  ><span>{{ option.label }}</span>
                   @if (count > 1) {
                     <span class="reaction-count">{{ count }}</span>
                   }
@@ -196,11 +196,11 @@
                 type="button"
                 [class.is-selected]="hasReacted(post, option.code)"
                 [attr.aria-pressed]="hasReacted(post, option.code)"
-                [attr.aria-label]="'React: ' + option.label"
+                [attr.aria-label]="'React: ' + option.accessibleLabel"
                 (click)="react(post, option.code)"
                 [disabled]="isPending(post)"
               >
-                <span lang="ja">{{ option.label }}</span>
+                <span>{{ option.label }}</span>
               </button>
             }
           </div>
